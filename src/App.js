@@ -1,25 +1,44 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import firebase from './firebase';
+import Navbar from './components/Navbar';
+import Login from './components/Login';
+import AddWeight from './components/AddWeight';
+import SeeWeights from './components/SeeWeights';
+
+export default function App() {
+  
+  const [userData, setUserData] = useState({ user: null, loading: false });
+
+  useEffect(() => {
+    firebase.auth().onAuthStateChanged((user) => {
+      if (user) setUserData({ user, loading: false });
+      else setUserData({ user: null, loading: false });
+    });
+  }, []);
+
+  const handleLogin = () => {
+    setUserData({ user: null, loading: true });
+    firebase
+      .auth()
+      .signInAnonymously()
+      .then(() => console.log("Logged In"))
+  }
+
+  const handleSignOut = () => {
+    firebase
+    .auth()
+    .signOut()
+    .then(() => console.log("Signed Out"))
+  }
+
+  return userData.user ?
+    <div>
+      <Navbar handleSignOut={handleSignOut} />
+      <AddWeight userId={userData.user.uid} />
+      <SeeWeights userId={userData.user.uid} />
+    </div> : 
+    <Login handleLogin={handleLogin} loading={userData.loading} />;
 }
 
-export default App;
